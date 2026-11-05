@@ -118,14 +118,6 @@ dbt test                              # data quality tests
 dbt run --select +<model\_name>        # a model and all of its upstream models
 dbt run --select <model\_name> --full-refresh   # rebuild an incremental table from scratch
 ```
-Troubleshooting
-Problem	Fix
-`Could not list objects in bucket`	ClickHouse cannot reach the MinIO API port, or the path/port is wrong. Use the API port, not the console port (9001)
-`Authentication failed` (ClickHouse)	Wrong password in `profiles.yml` or in the `CH\_PASSWORD` variable
-`ingest\_date` column conflict	The Parquet file also contains a column with the same name. Disable hive partitioning and derive the date from `\_path`
-Databases are created as `DWH\_bronze`	The `macros/generate\_schema\_name.sql` macro is missing
-`dbt: command not found` (Airflow)	Rebuild the image with `--build`
-DAG does not show up	Run `airflow dags list-import-errors` to see the import error
 Security
 Do not commit `.env`, `profiles.yml`, or any file containing passwords or keys (use `.gitignore`).
 Use a dedicated, least-privilege dbt user in ClickHouse instead of the `default` user.
