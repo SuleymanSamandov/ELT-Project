@@ -1,4 +1,4 @@
-# End To End Project
+# Data Pipeline Project
 
 An end-to-end data warehouse project: data from the SondeHub API is fetched with Python and written to **MinIO**, transformed with **dbt** into bronze / silver / gold layers on **ClickHouse**, and the whole flow runs automatically on **Airflow**. All services run in **Docker**.
 
