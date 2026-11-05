@@ -90,7 +90,7 @@ Project/
 
 ### Prerequisites
 
-- Docker Desktop (WSL2 is recommended on Windows)
+- Docker Desktop (WSL2 is recommended on Windows) Or Linux
 - Git
 
 ### 1. Clone the repository
