@@ -1,0 +1,117 @@
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./api_src:/opt/airflow/project/api_src
+    - ./dbt_project:/opt/airflow/project/dbt_project
+    - ./config:/opt/airflow/config
+
+  depends_on:
+    postgres:
+      condition: service_healthy
+
+services:
+
+  # -------------------------
+  # POSTGRES - AIRFLOW METADATA
+  # -------------------------
+  postgres:
+    image: postgres:16
+    container_name: airflow_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+
+  # -------------------------
+  # AIRFLOW INITIALIZATION
+  # -------------------------
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow_init
+    command: db migrate
+    restart: "no"
+
+  # -------------------------
+  # AIRFLOW WEBSERVER
+  # -------------------------
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    command: webserver
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  # -------------------------
+  # AIRFLOW SCHEDULER
+  # -------------------------
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow_scheduler
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  # -------------------------
+  # MINIO
+  # -------------------------
+  minio:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/minio/minio:RELEASE.2024-01-11T07-46-16Z
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9001:9001"
+      - "9002:9000"
+    env_file:
+      - .env
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  # -------------------------
+  # CLICKHOUSE
+  # -------------------------
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    restart: unless-stopped
+    ports:
+      - "8126:8123"
+      - "9008:9000"
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+volumes:
+  postgres_data:
+  minio_data:
+  clickhouse_data:

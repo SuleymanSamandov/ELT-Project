@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# dbt
+dbt_packages/
+target/
+logs/
+.partial_parse.msgpack
+
+# Airflow
+airflow.db
+airflow-webserver.pid
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

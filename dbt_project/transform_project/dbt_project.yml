@@ -1,0 +1,42 @@
+name: transform_project
+version: "1.0.0"
+config-version: 2
+
+profile: project
+
+model-paths: ["models"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+asset-paths: ["assets"]
+
+clean-targets:
+  - "dbt_packages"
+
+vars:
+  minio_url: "http://172.23.2.10:9002/raw"
+  minio_key: "f7YXhKjqPqkR1spEwc9T"
+  minio_secret: "DpS3G52sav2bRxeAemDuBngL21HyqdOFBhlWcP83"
+
+models:
+  transform_project:
+    src:
+      +materialized: ephemeral
+    bronze:
+      +schema: Bronze
+      +materialized: table
+      +engine: MergeTree()
+    silver:
+      +schema: Silver
+      +materialized: table
+      +engine: MergeTree()
+    gold:
+      +schema: Gold
+      +materialized: table
+      +engine: MergeTree()
+
+snapshots:
+  transform_project:
+    +schema: Gold
+    +engine: MergeTree()
