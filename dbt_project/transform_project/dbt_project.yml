@@ -15,7 +15,7 @@ clean-targets:
   - "dbt_packages"
 
 vars:
-  minio_url: "http://172.23.2.10:9002/raw"
+  minio_url: "http://000.00.0.00:0000/raw"
   minio_key: "f7YXhKjqPqkR1spEwc9T"
   minio_secret: "DpS3G52sav2bRxeAemDuBngL21HyqdOFBhlWcP83"
 
